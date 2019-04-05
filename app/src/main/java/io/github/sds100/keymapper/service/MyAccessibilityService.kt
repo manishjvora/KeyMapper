@@ -305,10 +305,14 @@ class MyAccessibilityService : AccessibilityService(), IContext, IPerformGlobalA
         sendBroadcast(Intent(ACTION_ON_STOP))
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        Log.e(this::class.java.simpleName, event?.packageName.toString())
+    }
 
     override fun onKeyEvent(event: KeyEvent?): Boolean {
         if (event == null) return super.onKeyEvent(event)
+
+        //Log.e(this::class.java.simpleName, rootInActiveWindow.packageName.toString())
 
         try {
             if (mRecordingTrigger) {

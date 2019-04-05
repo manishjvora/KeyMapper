@@ -16,6 +16,7 @@ abstract class KeyMapDao {
         const val KEY_FLAGS = "flags"
         const val KEY_TRIGGER_LIST = "trigger_list"
         const val KEY_ENABLED = "is_enabled"
+        const val KEY_PROFILE_ID = "profile_id"
 
         //Action stuff
         const val KEY_ACTION_TYPE = "action_type"

@@ -1,10 +1,9 @@
 package io.github.sds100.keymapper
 
-import androidx.room.ColumnInfo
-import androidx.room.Embedded
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room.*
 import io.github.sds100.keymapper.data.KeyMapDao
+import io.github.sds100.keymapper.data.ProfileDao
+import io.github.sds100.keymapper.profile.Profile
 import io.github.sds100.keymapper.util.FlagUtils
 import io.github.sds100.keymapper.util.addFlag
 import io.github.sds100.keymapper.util.containsFlag
@@ -14,7 +13,14 @@ import io.github.sds100.keymapper.util.removeFlag
  * Created by sds100 on 12/07/2018.
  */
 
-@Entity(tableName = KeyMapDao.TABLE_NAME)
+@Entity(tableName = KeyMapDao.TABLE_NAME,
+        foreignKeys = [(ForeignKey(
+                entity = Profile::class,
+                parentColumns = [ProfileDao.KEY_ID],
+                childColumns = [KeyMapDao.KEY_PROFILE_ID],
+                onDelete = ForeignKey.CASCADE))],
+        indices = [Index(KeyMapDao.KEY_PROFILE_ID)]
+)
 class KeyMap(
         @PrimaryKey(autoGenerate = true)
         val id: Long,
@@ -29,7 +35,13 @@ class KeyMap(
         var flags: Int = 0,
 
         @ColumnInfo(name = KeyMapDao.KEY_ENABLED)
-        var isEnabled: Boolean = true
+        var isEnabled: Boolean = true,
+
+        /**
+         * Is null if it isn't in a profile.
+         */
+        @ColumnInfo(name = KeyMapDao.KEY_PROFILE_ID)
+        var profileId: Long? = null
 ) {
     @Embedded
     var action: Action? = null
@@ -58,7 +70,7 @@ class KeyMap(
         return true
     }
 
-    fun clone() = KeyMap(id, triggerList, flags, isEnabled).apply {
+    fun clone() = KeyMap(id, triggerList, flags, isEnabled, profileId).apply {
         action = this@KeyMap.action
     }
 
