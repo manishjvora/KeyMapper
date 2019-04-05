@@ -14,7 +14,7 @@ import io.github.sds100.keymapper.typeconverter.TriggerListTypeConverter
  * Created by sds100 on 05/09/2018.
  */
 
-@Database(version = 1, entities = [KeyMap::class], exportSchema = false)
+@Database(version = 1, entities = [KeyMap::class], exportSchema = true)
 @TypeConverters(
         TriggerListTypeConverter::class,
         ActionTypeTypeConverter::class,
