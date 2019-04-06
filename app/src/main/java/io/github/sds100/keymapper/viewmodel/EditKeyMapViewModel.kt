@@ -40,7 +40,6 @@ class EditKeyMapViewModel(id: Long, application: Application) : ConfigKeyMapView
     ) : ViewModelProvider.AndroidViewModelFactory(mApplication) {
 
         @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel?> create(modelClass: Class<T>) =
-                EditKeyMapViewModel(mId, mApplication) as T
+        override fun <T : ViewModel?> create(modelClass: Class<T>) = EditKeyMapViewModel(mId, mApplication) as T
     }
 }

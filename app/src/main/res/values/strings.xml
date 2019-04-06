@@ -12,7 +12,7 @@
     <string name="enable">Enable</string>
     <string name="open">Open</string>
     <string name="shrug">¯\\_(ツ)_/¯</string>
-    <string name="no_key_maps">You haven\'t created any keymaps!</string>
+    <string name="profile_no_keymaps">This profile has no keymaps!</string>
     <string name="performing_action">Key Mapper is performing an action…</string>
     <string name="email_subject">Key Mapper query</string>
 
@@ -26,6 +26,7 @@
     <string name="disabled">Disabled</string>
     <string name="show_hidden_system_actions">Show hidden items</string>
     <string name="key_map_adapter_flags">Flags</string>
+    <string name="tab_title_unassigned">Unassigned</string>
 
     <string name="description_open_app">Open %s</string>
     <string name="description_key">Press \'%s\' key</string>

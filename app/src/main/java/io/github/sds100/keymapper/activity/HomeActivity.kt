@@ -4,31 +4,28 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.text.SpannableStringBuilder
-import android.text.style.RelativeSizeSpan
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import androidx.annotation.ColorRes
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomappbar.BottomAppBar
 import com.google.android.material.bottomappbar.BottomAppBar.FAB_ALIGNMENT_MODE_CENTER
+import com.google.android.material.tabs.TabLayout
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.gson.Gson
 import io.github.sds100.keymapper.BuildConfig
 import io.github.sds100.keymapper.KeyMap
-import io.github.sds100.keymapper.KeymapAdapterModel
 import io.github.sds100.keymapper.R
 import io.github.sds100.keymapper.adapter.KeymapAdapter
-import io.github.sds100.keymapper.interfaces.OnItemClickListener
+import io.github.sds100.keymapper.delegate.TabDelegate
+import io.github.sds100.keymapper.fragment.KeymapListFragment
+import io.github.sds100.keymapper.interfaces.GetTabTitleListener
 import io.github.sds100.keymapper.selection.SelectionCallback
 import io.github.sds100.keymapper.selection.SelectionEvent
 import io.github.sds100.keymapper.selection.SelectionEvent.START
@@ -42,20 +39,14 @@ import io.github.sds100.keymapper.viewmodel.HomeViewModel
 import kotlinx.android.synthetic.main.activity_home.*
 import kotlinx.android.synthetic.main.bottom_sheet_home.view.*
 import kotlinx.android.synthetic.main.content_home.*
-import org.jetbrains.anko.*
+import org.jetbrains.anko.alert
+import org.jetbrains.anko.defaultSharedPreferences
 
-class HomeActivity : AppCompatActivity(), SelectionCallback, OnItemClickListener<KeymapAdapterModel> {
+class HomeActivity : AppCompatActivity(), SelectionCallback, TabLayout.OnTabSelectedListener, GetTabTitleListener {
 
     private val mBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent!!.action) {
-                /*when the input method changes, update the action descriptions in case any need to show an error
-                * that they need the input method to be enabled. */
-                Intent.ACTION_INPUT_METHOD_CHANGED -> {
-                    mViewModel.keyMapList.value?.let {
-                        updateActionDescriptions(it)
-                    }
-                }
                 MyAccessibilityService.ACTION_ON_START -> {
                     accessibilityServiceStatusLayout.changeToServiceEnabledState()
                 }
@@ -66,9 +57,17 @@ class HomeActivity : AppCompatActivity(), SelectionCallback, OnItemClickListener
         }
     }
 
-    private val mViewModel: HomeViewModel by lazy { ViewModelProviders.of(this).get(HomeViewModel::class.java) }
-    private val mKeymapAdapter: KeymapAdapter = KeymapAdapter(this)
+    private val mViewModel by lazy { ViewModelProviders.of(this).get(HomeViewModel::class.java) }
     private val mBottomSheetView by lazy { BottomSheetMenu.create(R.layout.bottom_sheet_home) }
+
+    private val mTabDelegate by lazy {
+        TabDelegate(
+                supportFragmentManager,
+                tabLayout,
+                viewPager,
+                mGetTabTitleListener = this,
+                sortFragments = { sortFragments(it) })
+    }
 
     private var mActionModeActive = false
         set(value) {
@@ -79,13 +78,20 @@ class HomeActivity : AppCompatActivity(), SelectionCallback, OnItemClickListener
                 appBar.navigationIcon = drawable(R.drawable.ic_arrow_back_appbar_24dp)
                 fab.setImageDrawable(drawable(R.drawable.ic_delete_white_24dp))
                 onCreateOptionsMenu(appBar.menu)
+                viewPager.isPagingEnabled = false
+                tabLayout.visibility = View.GONE
             } else {
                 appBar.fabAlignmentMode = FAB_ALIGNMENT_MODE_CENTER
                 appBar.navigationIcon = drawable(R.drawable.ic_menu_white_24dp)
                 fab.setImageDrawable(drawable(R.drawable.ic_add_24dp_white))
                 appBar.menu.clear()
+                viewPager.isPagingEnabled = true
+                tabLayout.visibility = View.VISIBLE
             }
         }
+
+    private val mCurrentKeymapAdapter: KeymapAdapter
+        get() = (mTabDelegate.getShownFragment() as KeymapListFragment).adapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,16 +106,50 @@ class HomeActivity : AppCompatActivity(), SelectionCallback, OnItemClickListener
             MyAccessibilityService.enableServiceInSettingsRoot()
         }
 
-        mViewModel.keyMapList.observe(this, Observer { keyMapList ->
-            populateKeymapsAsync(keyMapList)
+        if (savedInstanceState != null) {
+            val oldProfileFragments = supportFragmentManager.fragments.filter { it is KeymapListFragment }
 
+            if (oldProfileFragments.all { it != null }) {
+                mTabDelegate.addFragment(*oldProfileFragments.toTypedArray())
+            }
+        }
+
+        mViewModel.keyMapList.observe(this, Observer { keyMapList ->
             updateAccessibilityServiceKeymapCache(keyMapList)
-            updateActionDescriptions(keyMapList)
+        })
+
+        mViewModel.profiles.observe(this, Observer { profiles ->
+            profiles.toMutableList().apply {
+                forEach { profile ->
+
+                    val currentFragments = mTabDelegate.getFragments<KeymapListFragment>()
+
+                    //remove any fragments for profiles which don't exist anymore
+                    currentFragments.forEach { fragment ->
+                        if (!profiles.any { it.id == fragment.profileId }) {
+                            mTabDelegate.removeFragment(fragment)
+                        }
+                    }
+
+                    //add fragments for any new profiles
+                    if (!mTabDelegate.containsFragment<KeymapListFragment> { it.profileId == profile.id }) {
+                        val profileFragment = KeymapListFragment.newInstance(profile.id)
+                        mTabDelegate.addFragment(profileFragment)
+                    }
+                }
+
+                if (!mTabDelegate.containsFragment<KeymapListFragment> { it.profileId == -1L }) {
+                    val profileFragment = KeymapListFragment.newInstance(-1L)
+                    mTabDelegate.addFragment(profileFragment)
+                }
+
+                //mCurrentKeymapAdapter.iSelectionProvider.subscribeToSelectionEvents(this@HomeActivity)
+            }
         })
 
         appBar.setNavigationOnClickListener {
             if (mActionModeActive) {
-                mKeymapAdapter.iSelectionProvider.stopSelecting()
+                mCurrentKeymapAdapter.iSelectionProvider.stopSelecting()
             } else {
                 mBottomSheetView.show(this)
             }
@@ -132,8 +172,8 @@ class HomeActivity : AppCompatActivity(), SelectionCallback, OnItemClickListener
         //start NewKeymapActivity when the fab is pressed
         fab.setOnClickListener {
             if (mActionModeActive) {
-                mViewModel.deleteKeyMapById(*mKeymapAdapter.iSelectionProvider.selectedItemIds)
-                mKeymapAdapter.iSelectionProvider.stopSelecting()
+                mViewModel.deleteKeyMapById(*mCurrentKeymapAdapter.iSelectionProvider.selectedItemIds)
+                mCurrentKeymapAdapter.iSelectionProvider.stopSelecting()
             } else {
                 val intent = Intent(this, NewKeymapActivity::class.java)
                 startActivity(intent)
@@ -156,14 +196,10 @@ class HomeActivity : AppCompatActivity(), SelectionCallback, OnItemClickListener
             startActivity(intent)
         })
 
-        mKeymapAdapter.iSelectionProvider.subscribeToSelectionEvents(this)
-
-        //recyclerview stuff
-        recyclerViewKeyMaps.layoutManager = LinearLayoutManager(this)
-        recyclerViewKeyMaps.adapter = mKeymapAdapter
+        mTabDelegate.configureTabs()
+        tabLayout.addOnTabSelectedListener(this)
 
         val intentFilter = IntentFilter()
-        intentFilter.addAction(Intent.ACTION_INPUT_METHOD_CHANGED)
         intentFilter.addAction(MyAccessibilityService.ACTION_ON_START)
         intentFilter.addAction(MyAccessibilityService.ACTION_ON_STOP)
         registerReceiver(mBroadcastReceiver, intentFilter)
@@ -199,13 +235,12 @@ class HomeActivity : AppCompatActivity(), SelectionCallback, OnItemClickListener
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_multi_select, appBar.menu)
-        updateSelectionCount()
 
         return mActionModeActive
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        val selectedItemIds = mKeymapAdapter.iSelectionProvider.selectedItemIds
+        val selectedItemIds = mCurrentKeymapAdapter.iSelectionProvider.selectedItemIds
 
         return when (item?.itemId) {
             R.id.action_enable -> {
@@ -219,7 +254,7 @@ class HomeActivity : AppCompatActivity(), SelectionCallback, OnItemClickListener
             }
 
             R.id.action_select_all -> {
-                mKeymapAdapter.iSelectionProvider.selectAll()
+                mCurrentKeymapAdapter.iSelectionProvider.selectAll()
                 return true
             }
 
@@ -252,7 +287,7 @@ class HomeActivity : AppCompatActivity(), SelectionCallback, OnItemClickListener
         outState.apply {
             putBundle(
                     SelectionProvider.KEY_SELECTION_PROVIDER_STATE,
-                    mKeymapAdapter.iSelectionProvider.saveInstanceState())
+                    mCurrentKeymapAdapter.iSelectionProvider.saveInstanceState())
         }
 
         super.onSaveInstanceState(outState)
@@ -265,7 +300,7 @@ class HomeActivity : AppCompatActivity(), SelectionCallback, OnItemClickListener
             val selectionProviderState =
                     savedInstanceState.getBundle(SelectionProvider.KEY_SELECTION_PROVIDER_STATE)!!
 
-            mKeymapAdapter.iSelectionProvider.restoreInstanceState(selectionProviderState)
+            mCurrentKeymapAdapter.iSelectionProvider.restoreInstanceState(selectionProviderState)
         }
     }
 
@@ -277,7 +312,7 @@ class HomeActivity : AppCompatActivity(), SelectionCallback, OnItemClickListener
 
     override fun onBackPressed() {
         if (mActionModeActive) {
-            mKeymapAdapter.iSelectionProvider.stopSelecting()
+            mCurrentKeymapAdapter.iSelectionProvider.stopSelecting()
         } else {
             super.onBackPressed()
         }
@@ -291,89 +326,45 @@ class HomeActivity : AppCompatActivity(), SelectionCallback, OnItemClickListener
         }
     }
 
-    override fun onItemClick(item: KeymapAdapterModel) {
-        val intent = Intent(this, EditKeymapActivity::class.java)
-        intent.putExtra(EditKeymapActivity.EXTRA_KEYMAP_ID, item.id)
+    override fun getTabTitle(fragment: Fragment): String {
+        mViewModel.profiles.value?.apply {
+            val fragmentProfileId = (fragment as KeymapListFragment).profileId
 
-        startActivity(intent)
+            if (fragmentProfileId == -1L) {
+                return str(R.string.tab_title_unassigned)
+            } else {
+                find { it.id == fragmentProfileId }?.apply {
+                    return name
+                }
+            }
+        }
+
+        return ""
+    }
+
+    override fun onTabUnselected(tab: TabLayout.Tab?) {
+        mCurrentKeymapAdapter.iSelectionProvider.unsubscribeFromSelectionEvents(this)
+    }
+
+    override fun onTabSelected(tab: TabLayout.Tab?) {
+        mCurrentKeymapAdapter.iSelectionProvider.subscribeToSelectionEvents(this)
+    }
+
+    private fun sortFragments(fragments: List<Fragment>): List<Fragment> {
+        return fragments.sortedBy { getTabTitle(it) }.toMutableList().apply {
+            val unassignedFragment = find { (it as KeymapListFragment).profileId == -1L }
+
+            if (unassignedFragment != null) {
+                remove(unassignedFragment)
+                add(0, unassignedFragment)
+            }
+        }
     }
 
     private fun updateSelectionCount() {
         appBar.menu.findItem(R.id.selection_count)?.apply {
-            title = str(R.string.selection_count,
-                    mKeymapAdapter.iSelectionProvider.selectionCount)
+            title = str(R.string.selection_count, mCurrentKeymapAdapter.iSelectionProvider.selectionCount)
         }
-    }
-
-    private fun updateAccessibilityServiceKeymapCache(keyMapList: List<KeyMap>
-    ) {
-        val intent = Intent(MyAccessibilityService.ACTION_UPDATE_KEYMAP_CACHE)
-        val jsonString = Gson().toJson(keyMapList)
-
-        intent.putExtra(MyAccessibilityService.EXTRA_KEYMAP_CACHE_JSON, jsonString)
-
-        sendBroadcast(intent)
-    }
-
-    private fun populateKeymapsAsync(keyMapList: List<KeyMap>) {
-        doAsync {
-            val adapterModels = mutableListOf<KeymapAdapterModel>()
-
-            keyMapList.forEach { keyMap ->
-
-                val actionDescription = ActionUtils.getDescription(this@HomeActivity, keyMap.action)
-
-                adapterModels.add(KeymapAdapterModel(keyMap, actionDescription))
-            }
-
-            mKeymapAdapter.itemList = adapterModels
-
-            uiThread {
-                mKeymapAdapter.notifyDataSetChanged()
-                progressBar.visibility = View.GONE
-                setCaption()
-            }
-        }
-    }
-
-    private fun updateActionDescriptions(keyMapList: List<KeyMap>) {
-        //iterate through each keymap model and update the action description
-        doAsync {
-            mKeymapAdapter.itemList.forEach { model ->
-                keyMapList.find { it.id == model.id }?.apply {
-                    val actionDescription = ActionUtils.getDescription(this@HomeActivity, action)
-                    model.actionDescription = actionDescription
-                }
-            }
-
-            uiThread {
-                mKeymapAdapter.invalidateBoundViewHolders()
-            }
-        }
-    }
-
-    /**
-     * Controls what message is displayed to the user on the home-screen
-     */
-    private fun setCaption() {
-        //tell the user if they haven't created any KeyMaps
-        if (mKeymapAdapter.itemCount == 0) {
-            val spannableBuilder = SpannableStringBuilder()
-
-            spannableBuilder.append(getString(R.string.shrug), RelativeSizeSpan(2f))
-            spannableBuilder.append("\n\n")
-            spannableBuilder.append(getString(R.string.no_key_maps))
-
-            textViewCaption.visibility = View.VISIBLE
-            textViewCaption.text = spannableBuilder
-        } else {
-            textViewCaption.visibility = View.GONE
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    private fun setStatusBarColor(@ColorRes colorId: Int) {
-        window.statusBarColor = color(colorId)
     }
 
     private fun setFirebaseDataCollection() {
@@ -383,4 +374,15 @@ class HomeActivity : AppCompatActivity(), SelectionCallback, OnItemClickListener
 
         FirebaseAnalytics.getInstance(this@HomeActivity).setAnalyticsCollectionEnabled(isDataCollectionEnabled)
     }
+
+    private fun updateAccessibilityServiceKeymapCache(keyMapList: List<KeyMap>) {
+        val intent = Intent(MyAccessibilityService.ACTION_UPDATE_KEYMAP_CACHE)
+        val jsonString = Gson().toJson(keyMapList)
+
+        intent.putExtra(MyAccessibilityService.EXTRA_KEYMAP_CACHE_JSON, jsonString)
+
+        sendBroadcast(intent)
+    }
+
+    override fun onTabReselected(tab: TabLayout.Tab?) {}
 }

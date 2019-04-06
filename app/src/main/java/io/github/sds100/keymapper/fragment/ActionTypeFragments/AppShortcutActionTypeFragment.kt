@@ -12,13 +12,13 @@ import io.github.sds100.keymapper.Action
 import io.github.sds100.keymapper.Action.Companion.EXTRA_PACKAGE_NAME
 import io.github.sds100.keymapper.Action.Companion.EXTRA_SHORTCUT_TITLE
 import io.github.sds100.keymapper.ActionType
-import io.github.sds100.keymapper.adapter.AppShortcutAdapter
 import io.github.sds100.keymapper.Extra
-import io.github.sds100.keymapper.interfaces.OnItemClickListener
 import io.github.sds100.keymapper.R
+import io.github.sds100.keymapper.adapter.AppShortcutAdapter
+import io.github.sds100.keymapper.interfaces.OnItemClickListener
 import io.github.sds100.keymapper.util.AppShortcutUtils
 import io.github.sds100.keymapper.view.editTextDialog
-import kotlinx.android.synthetic.main.action_type_recyclerview.*
+import kotlinx.android.synthetic.main.fragment_recyclerview.*
 
 /**
  * Created by sds100 on 31/07/2018.
@@ -50,7 +50,7 @@ class AppShortcutActionTypeFragment : FilterableActionTypeFragment(), OnItemClic
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.action_type_recyclerview, container, false)
+        return inflater.inflate(R.layout.fragment_recyclerview, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

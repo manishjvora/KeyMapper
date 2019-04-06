@@ -17,6 +17,7 @@ import kotlinx.android.synthetic.main.action_type_edit_text.*
  * A Fragment that allows a user to type any length of text
  */
 class TextActionTypeFragment : ActionTypeFragment() {
+
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,

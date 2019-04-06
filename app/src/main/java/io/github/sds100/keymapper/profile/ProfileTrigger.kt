@@ -14,9 +14,10 @@ class ProfileTrigger(
         val type: String,
 
         @ColumnInfo(name = ProfileDao.KEY_TRIGGER_EXTRAS)
-        val extras: MutableList<Extra>) {
+        val extras: MutableList<Extra> = mutableListOf()) {
 
     companion object {
+        const val TYPE_NONE = "type_none"
         const val TYPE_BLUETOOTH_DEVICE = "type_bluetooth_device"
         const val TYPE_APP = "type_app"
     }
@@ -25,7 +26,8 @@ class ProfileTrigger(
 @StringDef(
         value = [
             ProfileTrigger.TYPE_BLUETOOTH_DEVICE,
-            ProfileTrigger.TYPE_APP
+            ProfileTrigger.TYPE_APP,
+            ProfileTrigger.TYPE_NONE
         ]
 )
 annotation class ProfileTriggerType

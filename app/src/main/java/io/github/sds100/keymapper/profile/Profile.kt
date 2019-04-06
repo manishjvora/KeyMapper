@@ -5,6 +5,7 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import io.github.sds100.keymapper.data.ProfileDao
+import io.github.sds100.keymapper.profile.ProfileTrigger.Companion.TYPE_NONE
 
 /**
  * Created by sds100 on 05/04/2019.
@@ -19,5 +20,5 @@ data class Profile(
         var name: String,
 
         @Embedded
-        var profileTrigger: ProfileTrigger
+        var profileTrigger: ProfileTrigger = ProfileTrigger(TYPE_NONE)
 )

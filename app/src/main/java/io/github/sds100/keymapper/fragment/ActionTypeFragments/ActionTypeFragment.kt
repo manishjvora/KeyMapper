@@ -9,7 +9,6 @@ import io.github.sds100.keymapper.Action
 /**
  * Created by sds100 on 29/07/2018.
  */
-
 abstract class ActionTypeFragment : Fragment() {
 
     /**

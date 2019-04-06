@@ -13,8 +13,8 @@ import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
 import io.github.sds100.keymapper.Action
 import io.github.sds100.keymapper.ActionType
-import io.github.sds100.keymapper.activity.ConfigKeymapActivity
 import io.github.sds100.keymapper.R
+import io.github.sds100.keymapper.activity.ConfigKeymapActivity
 import kotlinx.android.synthetic.main.action_type_key.*
 
 /**

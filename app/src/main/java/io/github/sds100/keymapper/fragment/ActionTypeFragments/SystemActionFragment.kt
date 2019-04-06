@@ -12,7 +12,8 @@ import io.github.sds100.keymapper.adapter.SystemActionAdapter
 import io.github.sds100.keymapper.interfaces.IContext
 import io.github.sds100.keymapper.interfaces.OnItemClickListener
 import io.github.sds100.keymapper.util.VolumeUtils
-import kotlinx.android.synthetic.main.action_type_recyclerview.*
+import io.github.sds100.keymapper.util.str
+import kotlinx.android.synthetic.main.fragment_recyclerview.*
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.okButton
 
@@ -44,7 +45,7 @@ class SystemActionFragment : FilterableActionTypeFragment(),
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.action_type_recyclerview, container, false)
+        return inflater.inflate(R.layout.fragment_recyclerview, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

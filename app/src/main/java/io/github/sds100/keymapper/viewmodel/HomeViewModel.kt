@@ -2,7 +2,6 @@ package io.github.sds100.keymapper.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import io.github.sds100.keymapper.KeyMap
 import io.github.sds100.keymapper.data.AppDatabase
 import org.jetbrains.anko.doAsync
 
@@ -14,8 +13,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val mDb: AppDatabase = AppDatabase.getInstance(application)
 
     val keyMapList = mDb.keyMapDao().getAll()
+    val profiles = mDb.profileDao().getAll()
 
-    fun deleteKeyMap(vararg keyMap: KeyMap) = doAsync { mDb.keyMapDao().delete(*keyMap) }
+    init {
+        //doAsync { mDb.profileDao().insert(Profile(0, name = "Test50")) }
+    }
 
     fun deleteKeyMapById(vararg id: Long) = doAsync { mDb.keyMapDao().deleteById(*id.toList().toLongArray()) }
 

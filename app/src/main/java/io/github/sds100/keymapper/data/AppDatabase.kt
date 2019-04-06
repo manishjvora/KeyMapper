@@ -67,4 +67,5 @@ abstract class AppDatabase : RoomDatabase() {
     }
 
     abstract fun keyMapDao(): KeyMapDao
+    abstract fun profileDao(): ProfileDao
 }
