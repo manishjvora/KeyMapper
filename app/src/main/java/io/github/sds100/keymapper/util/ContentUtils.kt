@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.provider.Settings
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.View
 import androidx.annotation.*
 import androidx.appcompat.content.res.AppCompatResources
@@ -26,6 +27,11 @@ fun IContext.str(@StringRes resId: Int, formatArgs: Any? = null): String = ctx.g
 fun View.str(@StringRes resId: Int, formatArgs: Any? = null): String = context.str(resId, formatArgs)
 
 fun Context.bool(@BoolRes resId: Int): Boolean = resources.getBoolean(resId)
+fun Context.float(@DimenRes resId: Int): Float {
+    val outValue = TypedValue()
+    resources.getValue(resId, outValue, true)
+    return outValue.float
+}
 
 fun View.bool(
         attributeSet: AttributeSet,
