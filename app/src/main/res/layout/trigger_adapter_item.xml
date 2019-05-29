@@ -25,7 +25,7 @@
             android:layout_height="wrap_content">
 
             <io.github.sds100.keymapper.view.SquareImageButton
-                android:id="@+id/appCompatImageView"
+                android:id="@+id/buttonDrag"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
@@ -43,7 +43,7 @@
                 android:scrollbarSize="2dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/buttonRemove"
-                app:layout_constraintStart_toEndOf="@+id/appCompatImageView"
+                app:layout_constraintStart_toEndOf="@+id/buttonDrag"
                 app:layout_constraintTop_toTopOf="parent">
 
                 <TextView
