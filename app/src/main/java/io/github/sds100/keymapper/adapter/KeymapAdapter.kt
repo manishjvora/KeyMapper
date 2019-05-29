@@ -92,8 +92,8 @@ class KeymapAdapter(private val mOnItemClickListener: OnItemClickListener<Keymap
                 //show all the triggers in a list
                 val triggerAdapter = TriggerAdapter(model.triggerList.toMutableList(), showRemoveButton = false)
 
-                recyclerViewTriggers.layoutManager = LinearLayoutManager(context)
-                recyclerViewTriggers.adapter = triggerAdapter
+                recyclerViewTrigger.layoutManager = LinearLayoutManager(context)
+                recyclerViewTrigger.adapter = triggerAdapter
             }
 
             checkBox.isChecked = iSelectionProvider.isSelected(holder.itemId)

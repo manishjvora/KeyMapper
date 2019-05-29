@@ -33,7 +33,7 @@
             app:layout_constraintTop_toBottomOf="@+id/actionDescriptionLayout" />
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewTriggers"
+            android:id="@+id/recyclerViewTrigger"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -64,7 +64,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
-            android:text="@string/triggers_header"
+            android:text="@string/trigger_header"
             android:textAppearance="@style/TextAppearance.AppCompat.Body2"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/bottom_divider" />

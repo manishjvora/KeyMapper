@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Bundle
-import android.util.Log
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
@@ -159,8 +158,8 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
             viewModel.keyMap.value!!.isEnabled = isChecked
         }
 
-        recyclerViewTriggers.layoutManager = LinearLayoutManager(this)
-        recyclerViewTriggers.adapter = mTriggerAdapter
+        recyclerViewTrigger.layoutManager = LinearLayoutManager(this)
+        recyclerViewTrigger.adapter = mTriggerAdapter
     }
 
     override fun onResume() {
