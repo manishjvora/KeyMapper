@@ -3,9 +3,13 @@ package io.github.sds100.keymapper.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import io.github.sds100.keymapper.R
 import io.github.sds100.keymapper.Trigger
+import io.github.sds100.keymapper.util.KeycodeUtils
+import io.github.sds100.keymapper.util.str
 import io.github.sds100.keymapper.view.SquareImageButton
 import kotlinx.android.synthetic.main.trigger_adapter_item.view.*
 
@@ -39,7 +43,15 @@ class TriggerAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.itemView.apply {
-            triggerChipGroup.addChipsFromTrigger(triggerList[position])
+            triggerTitle.text = buildString {
+                append(KeycodeUtils.keycodeToString(triggerList[position].keys[0]))
+                append(" ${str(R.string.trigger_title_divider_char)} ")
+                append("Logitech Bluetooth Keyboard")
+            }
+
+
+            //if it is the last item, don't show the down arrow
+            imageViewDownArrow.isVisible = position != triggerList.size - 1
 
             if (!showRemoveButton) {
                 buttonRemove.visibility = View.GONE
@@ -48,6 +60,18 @@ class TriggerAdapter(
     }
 
     override fun getItemCount() = triggerList.size
+
+    private val mItemTouchHelper = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0) {
+        override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+        ): Boolean {
+
+        }
+
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
+    }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         init {

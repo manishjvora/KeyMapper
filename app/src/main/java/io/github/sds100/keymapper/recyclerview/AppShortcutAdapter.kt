@@ -1,7 +1,7 @@
-package io.github.sds100.keymapper.adapter
+package io.github.sds100.keymapper.recyclerview
 
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.graphics.drawable.Drawable
 import android.widget.Filterable
 import com.hannesdorfmann.adapterdelegates4.AbsDelegationAdapter
@@ -15,18 +15,18 @@ import io.github.sds100.keymapper.interfaces.OnItemClickListener
  */
 
 /**
- * Display apps in a RecyclerView
+ * Display app shortcuts in a RecyclerView
  */
-class AppListAdapter(
-        override val onItemClickListener: OnItemClickListener<ApplicationInfo>,
-        private var mAppList: List<ApplicationInfo>,
+class AppShortcutAdapter(
+        override val onItemClickListener: OnItemClickListener<ResolveInfo>,
+        private var mAppShortcutList: List<ResolveInfo>,
         private val mPackageManager: PackageManager
-) : AbsDelegationAdapter<List<ApplicationInfo>>(), ISimpleItemAdapter<ApplicationInfo>, Filterable {
+) : AbsDelegationAdapter<List<ResolveInfo>>(), ISimpleItemAdapter<ResolveInfo>, Filterable {
 
     private val mAlphabeticalFilter = AlphabeticalFilter(
-            mOriginalList = mAppList,
+            mOriginalList = mAppShortcutList,
             onFilter = { filteredList ->
-                mAppList = filteredList
+                mAppShortcutList = filteredList
                 notifyDataSetChanged()
             },
             getItemText = { getItemText(it) }
@@ -36,16 +36,20 @@ class AppListAdapter(
         val simpleItemDelegate = SimpleItemAdapterDelegate(this)
         delegatesManager.addDelegate(simpleItemDelegate)
 
-        setItems(mAppList)
+        setItems(mAppShortcutList)
     }
 
     override fun getFilter() = mAlphabeticalFilter
 
-    override fun getItemCount() = mAppList.size
+    override fun getItemCount() = mAppShortcutList.size
 
-    override fun getItem(position: Int) = mAppList[position]
+    override fun getItem(position: Int) = mAppShortcutList[position]
 
-    override fun getItemDrawable(item: ApplicationInfo): Drawable? = item.loadIcon(mPackageManager)
+    override fun getItemText(item: ResolveInfo): String {
+        return item.loadLabel(mPackageManager).toString()
+    }
 
-    override fun getItemText(item: ApplicationInfo) = item.loadLabel(mPackageManager).toString()
+    override fun getItemDrawable(item: ResolveInfo): Drawable? {
+        return item.loadIcon(mPackageManager)
+    }
 }

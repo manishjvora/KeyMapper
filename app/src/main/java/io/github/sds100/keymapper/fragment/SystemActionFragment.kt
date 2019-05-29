@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import android.widget.Filterable
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.sds100.keymapper.*
-import io.github.sds100.keymapper.adapter.SystemActionAdapter
+import io.github.sds100.keymapper.recyclerview.SystemActionAdapter
 import io.github.sds100.keymapper.interfaces.IContext
 import io.github.sds100.keymapper.interfaces.OnItemClickListener
 import io.github.sds100.keymapper.util.SystemActionUtils

@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.sds100.keymapper.Action
 import io.github.sds100.keymapper.ActionType
-import io.github.sds100.keymapper.adapter.AppListAdapter
+import io.github.sds100.keymapper.recyclerview.AppListAdapter
 import io.github.sds100.keymapper.interfaces.OnItemClickListener
 import io.github.sds100.keymapper.asynctask.LoadAppListAsyncTask
 import io.github.sds100.keymapper.R

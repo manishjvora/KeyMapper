@@ -14,7 +14,7 @@ import io.github.sds100.keymapper.Action.Companion.EXTRA_SHORTCUT_TITLE
 import io.github.sds100.keymapper.ActionType
 import io.github.sds100.keymapper.Extra
 import io.github.sds100.keymapper.R
-import io.github.sds100.keymapper.adapter.AppShortcutAdapter
+import io.github.sds100.keymapper.recyclerview.AppShortcutAdapter
 import io.github.sds100.keymapper.interfaces.OnItemClickListener
 import io.github.sds100.keymapper.util.AppShortcutUtils
 import io.github.sds100.keymapper.view.editTextDialog

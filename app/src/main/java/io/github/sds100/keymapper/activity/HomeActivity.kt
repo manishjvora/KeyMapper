@@ -29,7 +29,7 @@ import io.github.sds100.keymapper.BuildConfig
 import io.github.sds100.keymapper.KeyMap
 import io.github.sds100.keymapper.KeymapAdapterModel
 import io.github.sds100.keymapper.R
-import io.github.sds100.keymapper.adapter.KeymapAdapter
+import io.github.sds100.keymapper.recyclerview.KeymapAdapter
 import io.github.sds100.keymapper.interfaces.OnItemClickListener
 import io.github.sds100.keymapper.selection.SelectionCallback
 import io.github.sds100.keymapper.selection.SelectionEvent

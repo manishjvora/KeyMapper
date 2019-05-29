@@ -1,4 +1,4 @@
-package io.github.sds100.keymapper.adapter
+package io.github.sds100.keymapper.recyclerview
 
 import android.view.LayoutInflater
 import android.view.View
