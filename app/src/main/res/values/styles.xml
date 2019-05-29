@@ -18,7 +18,6 @@
         <item name="android:alertDialogTheme">@style/AnkoSupportAlertDialog</item>
         <item name="bottomSheetMenuItemStyle">@style/BottomSheetMenuItem</item>
         <item name="iconColorOnSurface">@color/colorIconDark</item>
-        <item name="draggableItemBackground">@color/draggableItemBgLight</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
