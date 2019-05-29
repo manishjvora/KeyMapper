@@ -13,15 +13,26 @@
         <item name="colorOnSecondary">@color/colorOnSecondary</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="colorHomeBackground">#FAFAFA</item>
+        <item name="materialCardViewStyle">@style/AppTheme.MaterialCardView</item>
         <item name="bottomSheetDialogTheme">@style/BottomSheetDialogTheme</item>
         <item name="android:alertDialogTheme">@style/AnkoSupportAlertDialog</item>
         <item name="bottomSheetMenuItemStyle">@style/BottomSheetMenuItem</item>
         <item name="iconColorOnSurface">@color/colorIconDark</item>
+        <item name="draggableItemBackground">@color/draggableItemBgLight</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.MaterialCardView" parent="Widget.MaterialComponents.CardView">
+        <item name="shapeAppearance">@style/ShapeAppearanceOverlay.MaterialCardView</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.MaterialCardView">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
     </style>
 
     <style name="ShapeAppearanceOverlay.BottomSheetMenuItem">
