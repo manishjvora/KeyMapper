@@ -90,7 +90,9 @@ class KeymapAdapter(private val mOnItemClickListener: OnItemClickListener<Keymap
             } else {
                 triggerLayout.visibility = View.VISIBLE
                 //show all the triggers in a list
-                val triggerAdapter = TriggerAdapter(model.triggerList.toMutableList(), showRemoveButton = false)
+                val triggerAdapter = TriggerAdapter(model.triggerList.toMutableList()).apply {
+                    showRemoveButton = false
+                }
 
                 recyclerViewTrigger.layoutManager = LinearLayoutManager(context)
                 recyclerViewTrigger.adapter = triggerAdapter

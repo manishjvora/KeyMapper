@@ -10,6 +10,8 @@ import androidx.annotation.*
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.getResourceIdOrThrow
+import androidx.lifecycle.MutableLiveData
+import androidx.recyclerview.widget.RecyclerView
 import io.github.sds100.keymapper.interfaces.IContext
 
 /**
@@ -158,4 +160,74 @@ inline fun <reified T> Context.putSystemSetting(name: String, value: T) {
             throw Exception("Setting type ${T::class} is not supported")
         }
     }
+}
+
+/**
+ * Make sure you unregister the returned observer later.
+ */
+fun RecyclerView.Adapter<*>.observeAdapterData(
+        onChanged: () -> Unit = {},
+        onAnyChange: () -> Unit = {},
+        onRemove: (position: Int) -> Unit = {},
+        onInsert: (position: Int) -> Unit = {},
+        onMove: (fromPosition: Int, toPosition: Int) -> Unit = { _, _ -> },
+        onRangeRemoved: (positionStart: Int, itemCount: Int) -> Unit = { _, _ -> },
+        onRangeMoved: (fromPosition: Int, toPosition: Int, itemCount: Int) -> Unit = { _, _, _ -> },
+        onRangeInserted: (positionStart: Int, itemCount: Int) -> Unit = { _, _ -> },
+        onRangeChanged: (positionStart: Int, itemCount: Int) -> Unit = { _, _ -> }
+): RecyclerView.AdapterDataObserver {
+    val observer = object : RecyclerView.AdapterDataObserver() {
+
+        override fun onChanged() {
+            onChanged()
+            onAnyChange()
+        }
+
+        override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
+            if (itemCount == 1) {
+                onRemove(positionStart)
+            }
+
+            onRangeRemoved(positionStart, itemCount)
+            onAnyChange()
+        }
+
+        override fun onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) {
+            if (itemCount == 1) {
+                onMove(fromPosition, toPosition)
+            }
+
+            onRangeMoved(fromPosition, toPosition, itemCount)
+            onAnyChange()
+        }
+
+        override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+            if (itemCount == 1) {
+                onInsert(positionStart)
+            }
+
+            onRangeInserted(positionStart, itemCount)
+            onAnyChange()
+        }
+
+        override fun onItemRangeChanged(positionStart: Int, itemCount: Int) {
+            onRangeChanged(positionStart, itemCount)
+            onAnyChange()
+        }
+    }
+
+    registerAdapterDataObserver(observer)
+    return observer
+}
+
+fun RecyclerView.Adapter<*>.notifyItemInsertedLast() = notifyItemInserted(itemCount - 1)
+fun RecyclerView.Adapter<*>.notifyLastItemChanged() = notifyItemChanged(itemCount - 1)
+fun RecyclerView.Adapter<*>.notifyFirstItemChanged() = notifyItemChanged(0)
+
+fun <T> MutableLiveData<T>.notifyObservers() {
+    this.value = this.value
+}
+
+fun <T> T?.mutableLiveData(): MutableLiveData<T> = MutableLiveData<T>().apply {
+    value = this@mutableLiveData
 }

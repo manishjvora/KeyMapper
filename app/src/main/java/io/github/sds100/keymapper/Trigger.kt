@@ -9,4 +9,8 @@ import java.io.Serializable
 /**
  * @property [keys] The key codes which will trigger the action
  */
-data class Trigger(val keys: List<Int>) : Serializable
+data class Trigger(val keys: List<Int>) : Serializable{
+    enum class Mode {
+        PARALLEL, SEQUENCE
+    }
+}

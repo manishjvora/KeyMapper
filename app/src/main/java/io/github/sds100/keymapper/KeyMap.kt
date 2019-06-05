@@ -20,7 +20,7 @@ class KeyMap(
         val id: Long,
 
         @ColumnInfo(name = KeyMapDao.KEY_TRIGGER_LIST)
-        val triggerList: MutableList<Trigger> = mutableListOf(),
+        var triggerList: MutableList<Trigger> = mutableListOf(),
 
         @ColumnInfo(name = KeyMapDao.KEY_FLAGS)
         /**

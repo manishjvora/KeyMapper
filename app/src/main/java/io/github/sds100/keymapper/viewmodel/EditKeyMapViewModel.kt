@@ -3,7 +3,6 @@ package io.github.sds100.keymapper.viewmodel
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import io.github.sds100.keymapper.KeymapLiveData
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 
@@ -11,28 +10,24 @@ import org.jetbrains.anko.uiThread
  * Created by sds100 on 04/10/2018.
  */
 
-class EditKeyMapViewModel(id: Long, application: Application) : ConfigKeyMapViewModel(application) {
-
-    override val keyMap: KeymapLiveData = KeymapLiveData()
+class EditKeyMapViewModel(override val id: Long, application: Application) : ConfigKeyMapViewModel(application) {
 
     init {
         doAsync {
             val newKeyMap = db.keyMapDao().getById(id)
-
-            //livedata values can only be set on main thread
             uiThread {
-                keyMap.value = newKeyMap
-                keyMap.notifyObservers()
+                action.value = newKeyMap.action
+                triggerList.value = newKeyMap.triggerList
+                flags.value = newKeyMap.flags
+                isEnabled.value = newKeyMap.isEnabled
             }
         }
     }
 
     override fun saveKeymap() {
-        keyMap.value?.let {
-            doAsync { db.keyMapDao().update(it) }
+        doAsync {
+            db.keyMapDao().update(createKeymap())
         }
-
-        keyMap.notifyObservers()
     }
 
     class Factory(private val mId: Long,

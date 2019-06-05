@@ -321,7 +321,7 @@ class MyAccessibilityService : AccessibilityService(), IContext, IPerformGlobalA
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
-
+    
     override fun onKeyEvent(event: KeyEvent?): Boolean {
         when {
             event?.action == KeyEvent.ACTION_DOWN -> Logger.write(ctx, "Down Key Event", event.toString())

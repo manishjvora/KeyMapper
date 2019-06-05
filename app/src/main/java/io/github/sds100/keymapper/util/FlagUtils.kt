@@ -23,7 +23,8 @@ object FlagUtils {
     )
 
     fun showFlagDialog(ctx: Context,
-                       keyMap: KeyMap,
+                       flags: Int,
+                       action: Action?,
                        onPosClick: (selectedItems: List<Triple<String, Int, Boolean>>) -> Unit) {
 
         val items = sequence {
@@ -32,14 +33,14 @@ object FlagUtils {
                 val label = item.value
 
                 //only show the volume-ui flag if the action is volume-related
-                if ((!keyMap.action.isVolumeAction
-                                || keyMap.action?.data == SystemAction.VOLUME_SHOW_DIALOG)
+                if ((!action.isVolumeAction
+                                || action?.data == SystemAction.VOLUME_SHOW_DIALOG)
                         && flag == FLAG_SHOW_VOLUME_UI) {
                     continue
                 }
 
                 //1st = label for the flag, 2nd = the flag, 3rd = whether the flag should be checked
-                yield(Triple(ctx.str(label), flag, containsFlag(keyMap.flags, flag)))
+                yield(Triple(ctx.str(label), flag, containsFlag(flags, flag)))
             }
         }.toMutableList()
 

@@ -20,6 +20,10 @@
         <attr name="expanded" format="boolean" />
     </declare-styleable>
 
+    <declare-styleable name="TriggerKeyLinkButton">
+        <attr name="state_arrow" format="boolean" />
+    </declare-styleable>
+
     <declare-styleable name="ExpandableCardView">
         <attr name="expandedLayout" format="reference" />
         <attr name="collapsedLayout" format="reference" />

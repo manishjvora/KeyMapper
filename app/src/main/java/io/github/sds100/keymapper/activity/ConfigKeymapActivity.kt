@@ -67,15 +67,21 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
                 }
 
                 Intent.ACTION_INPUT_METHOD_CHANGED -> {
-                    viewModel.keyMap.notifyObservers()
+                    viewModel.action.notifyObservers()
                 }
             }
         }
     }
 
-    private val mTriggerAdapter = TriggerAdapter()
+    private val mTriggerAdapter by lazy { TriggerAdapter() }
 
     private var mIsRecordingTrigger = false
+
+    private val mAdapterDataObserver = mTriggerAdapter.observeAdapterData(
+            onAnyChange = {
+                viewModel.triggerList.value = mTriggerAdapter.items
+            }
+    )
 
     abstract val viewModel: ConfigKeyMapViewModel
 
@@ -83,7 +89,6 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_config_key_map)
         setSupportActionBar(toolbar)
-
 
         //this needs to be enabled for vector drawables from resources to work on kitkat
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
@@ -103,19 +108,22 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
         registerReceiver(mBroadcastReceiver, intentFilter)
 
         //observing stuff
-        viewModel.keyMap.observe(this, Observer {
-            it?.let { keyMap ->
-                doAsync {
-                    val actionDescription = ActionUtils.getDescription(this@ConfigKeymapActivity, keyMap.action)
+        viewModel.triggerList.observe(this, Observer {
+            mTriggerAdapter.items = it.toMutableList()
+        })
 
-                    uiThread {
-                        loadActionDescriptionLayout(actionDescription)
-                    }
+        viewModel.action.observe(this, Observer {
+            doAsync {
+                val actionDescription = ActionUtils.getDescription(this@ConfigKeymapActivity, it)
+
+                uiThread {
+                    loadActionDescriptionLayout(actionDescription)
                 }
-
-                mTriggerAdapter.triggerList = keyMap.triggerList
-                switchEnabled.isChecked = keyMap.isEnabled
             }
+        })
+
+        viewModel.isEnabled.observe(this, Observer {
+            switchEnabled.isChecked = it
         })
 
         //button stuff
@@ -134,20 +142,18 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
         }
 
         buttonFlags.setOnClickListener {
-            viewModel.keyMap.value?.let { keyMap ->
-                FlagUtils.showFlagDialog(this, keyMap) { selectedItems ->
-                    keyMap.flags = 0
+            FlagUtils.showFlagDialog(this, viewModel.flags.value!!, viewModel.action.value!!) { selectedItems ->
+                viewModel.flags.value = 0
 
-                    selectedItems.forEach {
-                        val flag = it.second
-                        val isChecked = it.third
+                selectedItems.forEach {
+                    val flag = it.second
+                    val isChecked = it.third
 
-                        if (isChecked) {
-                            keyMap.flags = addFlag(keyMap.flags, flag)
+                    if (isChecked) {
+                        viewModel.flags.value = addFlag(viewModel.flags.value!!, flag)
 
-                            if (flag == FlagUtils.FLAG_LONG_PRESS) {
-                                showLongPressWarning()
-                            }
+                        if (flag == FlagUtils.FLAG_LONG_PRESS) {
+                            showLongPressWarning()
                         }
                     }
                 }
@@ -155,7 +161,7 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
         }
 
         switchEnabled.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.keyMap.value!!.isEnabled = isChecked
+            viewModel.isEnabled.value = isChecked
         }
 
         recyclerViewTrigger.layoutManager = LinearLayoutManager(this)
@@ -174,7 +180,7 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
 
         /* reload the action description since the user could have left the app and uninstalled
         the app chosen as the action so an error message should now be displayed */
-        viewModel.keyMap.notifyObservers()
+        viewModel.action.notifyObservers()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -230,6 +236,7 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
         super.onDestroy()
 
         unregisterReceiver(mBroadcastReceiver)
+        mTriggerAdapter.unregisterAdapterDataObserver(mAdapterDataObserver)
     }
 
     //When the user chooses an action in ChooseActionActivity, the result is returned here
@@ -239,14 +246,14 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
         when (requestCode) {
             REQUEST_CODE_ACTION -> {
                 if (data != null) {
-                    viewModel.keyMap.action =
+                    viewModel.action.value =
                             Gson().fromJson(data.getStringExtra(Action.EXTRA_ACTION))
                 }
             }
 
             /* need to refresh the action description layout so it stops showing an error message after they've enabled
             * the device admin. */
-            REQUEST_CODE_DEVICE_ADMIN -> viewModel.keyMap.notifyObservers()
+            REQUEST_CODE_DEVICE_ADMIN -> viewModel.action.notifyObservers()
         }
     }
 
@@ -259,7 +266,7 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
             REQUEST_CODE_PERMISSION -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PERMISSION_GRANTED) {
                     //reload the ActionDescriptionLayout so it stops saying the app needs permission.
-                    viewModel.keyMap.notifyObservers()
+                    viewModel.action.notifyObservers()
                 }
             }
         }
@@ -289,14 +296,15 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
         val trigger = chipGroupTriggerPreview.createTriggerFromChips()
 
         if (trigger.keys.isNotEmpty()) {
-            viewModel.keyMap.addTrigger(trigger)
+            mTriggerAdapter.items.add(trigger)
+            mTriggerAdapter.notifyItemInsertedLast()
         }
 
         chipGroupTriggerPreview.removeAllChips()
     }
 
     private fun testAction() {
-        val action = viewModel.keyMap.action
+        val action = viewModel.action.value
 
         if (action != null) {
             val intent = Intent(MyAccessibilityService.ACTION_TEST_ACTION)

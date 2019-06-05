@@ -1,14 +1,18 @@
-package io.github.sds100.keymapper.adapter
+package io.github.sds100.keymapper.recyclerview
 
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.RecyclerView
 import io.github.sds100.keymapper.R
 import io.github.sds100.keymapper.Trigger
+import io.github.sds100.keymapper.delegate.DragAndDropDelegate
+import io.github.sds100.keymapper.delegate.IDragAndDrop
 import io.github.sds100.keymapper.util.KeycodeUtils
+import io.github.sds100.keymapper.util.observeAdapterData
 import io.github.sds100.keymapper.util.str
 import io.github.sds100.keymapper.view.SquareImageButton
 import kotlinx.android.synthetic.main.trigger_adapter_item.view.*
@@ -20,19 +24,35 @@ import kotlinx.android.synthetic.main.trigger_adapter_item.view.*
 /**
  * Display a list of [Trigger]s as Chips in a RecyclerView
  */
-class TriggerAdapter(
-        triggerList: MutableList<Trigger> = mutableListOf(),
-        val showRemoveButton: Boolean = true
-) : RecyclerView.Adapter<TriggerAdapter.ViewHolder>() {
+class TriggerAdapter(override var items: MutableList<Trigger> = mutableListOf()
+) : RecyclerView.Adapter<TriggerAdapter.ViewHolder>(), IDragAndDrop<Trigger> {
 
-    var triggerList: MutableList<Trigger> = mutableListOf()
+    var showRemoveButton: Boolean = true
         set(value) {
-            notifyDataSetChanged()
             field = value
+            notifyDataSetChanged()
         }
 
+    var triggerMode: Trigger.Mode = Trigger.Mode.PARALLEL
+        set(value) {
+            field = value
+
+            notifyDataSetChanged()
+        }
+
+    private val mDragAndDropDelegate = DragAndDropDelegate(this)
+
     init {
-        this.triggerList = triggerList
+        /* If the last item is removed or inserted then the item before needs updating since the arrow
+        needs to be removed or shown */
+        observeAdapterData(
+                onInsert = { position ->
+                    notifyItemChanged(position - 1)
+                },
+                onRemove = { position ->
+                    notifyItemChanged(position - 1)
+                }
+        )
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -42,44 +62,82 @@ class TriggerAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+
         holder.itemView.apply {
             triggerTitle.text = buildString {
-                append(KeycodeUtils.keycodeToString(triggerList[position].keys[0]))
+                append(KeycodeUtils.keycodeToString(items[position].keys[0]))
                 append(" ${str(R.string.trigger_title_divider_char)} ")
-                append("Logitech Bluetooth Keyboard")
             }
 
+            buttonDrag.setOnTouchListener { _, event ->
+                if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                    if (itemCount > 1) {
+                        mDragAndDropDelegate.startDragging(holder)
+                    }
+                }
 
-            //if it is the last item, don't show the down arrow
-            imageViewDownArrow.isVisible = position != triggerList.size - 1
+                false
+            }
 
             if (!showRemoveButton) {
                 buttonRemove.visibility = View.GONE
             }
+
+            holder.invalidateLinkImage()
         }
     }
 
-    override fun getItemCount() = triggerList.size
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
 
-    private val mItemTouchHelper = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0) {
-        override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-        ): Boolean {
+        mDragAndDropDelegate.onAttachedToRecyclerView(recyclerView)
 
+        recyclerView.itemAnimator = object : DefaultItemAnimator() {
+
+            override fun onMoveFinished(item: RecyclerView.ViewHolder?) {
+                super.onMoveFinished(item)
+
+                (item as ViewHolder).invalidateLinkImage()
+            }
         }
-
-        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
     }
+
+    override fun onItemMoved(fromPosition: Int, toPosition: Int) {
+        notifyItemMoved(fromPosition, toPosition)
+    }
+
+    override fun getItemCount() = items.size
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         init {
             itemView.findViewById<SquareImageButton>(R.id.buttonRemove).setOnClickListener {
                 if (adapterPosition in 0..itemCount) {
-                    triggerList.removeAt(adapterPosition)
+                    items.removeAt(adapterPosition)
                     notifyItemRemoved(adapterPosition)
                 }
+            }
+
+            invalidateLinkImage()
+        }
+
+        /**
+         * Invalidate the image which is an arrow or plus icon
+         */
+        fun invalidateLinkImage() {
+            //if it is the last item, don't show the down arrow
+            itemView.imageViewLink.apply {
+                when (triggerMode) {
+                    Trigger.Mode.PARALLEL -> {
+                        setImageState(intArrayOf(-R.attr.state_arrow), true)
+                    }
+
+                    Trigger.Mode.SEQUENCE -> {
+                        setImageState(intArrayOf(R.attr.state_arrow), true)
+                    }
+                }
+
+                //don't show if it is the last time
+                isVisible = adapterPosition != itemCount - 1
             }
         }
     }

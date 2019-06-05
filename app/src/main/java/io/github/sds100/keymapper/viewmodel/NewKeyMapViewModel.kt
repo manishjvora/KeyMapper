@@ -1,7 +1,6 @@
 package io.github.sds100.keymapper.viewmodel
 
 import android.app.Application
-import io.github.sds100.keymapper.KeymapLiveData
 import org.jetbrains.anko.doAsync
 
 /**
@@ -10,15 +9,9 @@ import org.jetbrains.anko.doAsync
 
 class NewKeyMapViewModel(application: Application) : ConfigKeyMapViewModel(application) {
     //create a blank keymap
-    override val keyMap = KeymapLiveData()
-
-    init {
-        keyMap.notifyObservers()
-    }
+    override val id: Long = 0
 
     override fun saveKeymap() {
-        keyMap.value?.let {
-            doAsync { db.keyMapDao().insert(it) }
-        }
+        doAsync { db.keyMapDao().insert(createKeymap()) }
     }
 }
