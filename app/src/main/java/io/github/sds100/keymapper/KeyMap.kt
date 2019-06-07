@@ -1,14 +1,11 @@
 package io.github.sds100.keymapper
 
 import androidx.room.ColumnInfo
-import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import io.github.sds100.keymapper.data.KeyMapDao
 import io.github.sds100.keymapper.util.FlagUtils
-import io.github.sds100.keymapper.util.addFlag
 import io.github.sds100.keymapper.util.containsFlag
-import io.github.sds100.keymapper.util.removeFlag
 
 /**
  * Created by sds100 on 12/07/2018.
@@ -22,6 +19,8 @@ class KeyMap(
         @ColumnInfo(name = KeyMapDao.KEY_TRIGGER_LIST)
         var triggerList: MutableList<Trigger> = mutableListOf(),
 
+        var actionList: MutableList<Action> = mutableListOf(),
+
         @ColumnInfo(name = KeyMapDao.KEY_FLAGS)
         /**
          * Flags are stored as bits.
@@ -31,18 +30,6 @@ class KeyMap(
         @ColumnInfo(name = KeyMapDao.KEY_ENABLED)
         var isEnabled: Boolean = true
 ) {
-    @Embedded
-    var action: Action? = null
-        set(value) {
-            if (value.isVolumeAction) {
-                flags = addFlag(flags, FlagUtils.FLAG_SHOW_VOLUME_UI)
-            } else {
-                flags = removeFlag(flags, FlagUtils.FLAG_SHOW_VOLUME_UI)
-            }
-
-            field = value
-        }
-
     val isLongPress
         get() = containsFlag(flags, FlagUtils.FLAG_LONG_PRESS)
 
@@ -58,9 +45,7 @@ class KeyMap(
         return true
     }
 
-    fun clone() = KeyMap(id, triggerList, flags, isEnabled).apply {
-        action = this@KeyMap.action
-    }
+    fun clone() = KeyMap(id, triggerList, actionList, flags, isEnabled)
 
     fun containsTrigger(keyCodes: List<Int>): Boolean {
         return triggerList.any { trigger ->

@@ -2,6 +2,7 @@
 <resources>
     <attr name="colorHomeBackground" format="color" />
     <attr name="iconColorOnSurface" format="color" />
+    <attr name="colorDivider" format="color" />
 
     <declare-styleable name="StatusLayout">
         <!--The text to show if the service is enabled-->

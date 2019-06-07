@@ -127,7 +127,7 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
         })
 
         //button stuff
-        buttonRecordTrigger.setOnClickListener {
+        buttonRecordKeys.setOnClickListener {
             recordTrigger()
         }
 
@@ -176,7 +176,7 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
         val isAccessibilityServiceEnabled =
                 MyAccessibilityService.isServiceEnabled(this)
 
-        buttonRecordTrigger.isEnabled = isAccessibilityServiceEnabled
+        buttonRecordKeys.isEnabled = isAccessibilityServiceEnabled
 
         /* reload the action description since the user could have left the app and uninstalled
         the app chosen as the action so an error message should now be displayed */
@@ -246,14 +246,14 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
         when (requestCode) {
             REQUEST_CODE_ACTION -> {
                 if (data != null) {
-                    viewModel.action.value =
+                    viewModel.actionList.value =
                             Gson().fromJson(data.getStringExtra(Action.EXTRA_ACTION))
                 }
             }
 
             /* need to refresh the action description layout so it stops showing an error message after they've enabled
             * the device admin. */
-            REQUEST_CODE_DEVICE_ADMIN -> viewModel.action.notifyObservers()
+            REQUEST_CODE_DEVICE_ADMIN -> viewModel.actionList.notifyObservers()
         }
     }
 
@@ -266,7 +266,7 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
             REQUEST_CODE_PERMISSION -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PERMISSION_GRANTED) {
                     //reload the ActionDescriptionLayout so it stops saying the app needs permission.
-                    viewModel.action.notifyObservers()
+                    viewModel.actionList.notifyObservers()
                 }
             }
         }
@@ -277,8 +277,8 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
      */
     private fun recordTrigger() {
         mIsRecordingTrigger = true
-        buttonRecordTrigger.text = getString(R.string.button_recording_trigger)
-        buttonRecordTrigger.isEnabled = false
+        buttonRecordKeys.text = getString(R.string.button_recording_trigger)
+        buttonRecordKeys.isEnabled = false
 
         //tell the accessibility service to record key events
         sendBroadcast(Intent(ACTION_RECORD_TRIGGER))
@@ -290,8 +290,8 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
     private fun onStopRecordingTrigger() {
         mIsRecordingTrigger = false
 
-        buttonRecordTrigger.text = getString(R.string.button_record_trigger)
-        buttonRecordTrigger.isEnabled = true
+        buttonRecordKeys.text = getString(R.string.button_record_keys)
+        buttonRecordKeys.isEnabled = true
 
         val trigger = chipGroupTriggerPreview.createTriggerFromChips()
 
@@ -304,14 +304,14 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
     }
 
     private fun testAction() {
-        val action = viewModel.action.value
-
-        if (action != null) {
-            val intent = Intent(MyAccessibilityService.ACTION_TEST_ACTION)
-            intent.putExtra(MyAccessibilityService.EXTRA_ACTION, action)
-
-            sendBroadcast(intent)
-        }
+//        val action = viewModel.action.value
+//
+//        if (action != null) {
+//            val intent = Intent(MyAccessibilityService.ACTION_TEST_ACTION)
+//            intent.putExtra(MyAccessibilityService.EXTRA_ACTION, action)
+//
+//            sendBroadcast(intent)
+//        }
     }
 
     @UiThread
@@ -362,5 +362,9 @@ abstract class ConfigKeymapActivity : AppCompatActivity() {
                 }
             }.show()
         }
+    }
+
+    private fun createTriggerAdapterModels(triggerList: List<Trigger>) {
+
     }
 }

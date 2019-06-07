@@ -17,7 +17,7 @@ abstract class ConfigKeyMapViewModel(application: Application) : AndroidViewMode
 
     val db: AppDatabase = AppDatabase.getInstance(application)
 
-    val action: MutableLiveData<Action> = MutableLiveData()
+    val actionList: MutableLiveData<List<Action>> = listOf<Action>().mutableLiveData()
     var triggerList: MutableLiveData<List<Trigger>> = listOf<Trigger>().mutableLiveData()
     val flags: MutableLiveData<Int> = 0.mutableLiveData()
     val isEnabled: MutableLiveData<Boolean> = false.mutableLiveData()
@@ -25,7 +25,7 @@ abstract class ConfigKeyMapViewModel(application: Application) : AndroidViewMode
     fun createKeymap(): KeyMap {
         val keyMap = KeyMap(id)
 
-        keyMap.action = action.value
+        keyMap.actionList = actionList.value!!.toMutableList()
         keyMap.triggerList = triggerList.value!!.toMutableList()
         keyMap.flags = flags.value!!
         keyMap.isEnabled = isEnabled.value!!

@@ -6,6 +6,9 @@ import androidx.annotation.StringDef
 import androidx.room.ColumnInfo
 import io.github.sds100.keymapper.data.KeyMapDao
 import io.github.sds100.keymapper.util.ErrorCodeUtils
+import io.github.sds100.keymapper.util.FlagUtils
+import io.github.sds100.keymapper.util.addFlag
+import io.github.sds100.keymapper.util.removeFlag
 import java.io.Serializable
 
 /**
@@ -32,7 +35,6 @@ annotation class ExtraId
  * - System actions/settings
  */
 data class Action(
-        @ColumnInfo(name = KeyMapDao.KEY_ACTION_TYPE)
         val type: ActionType,
 
         /**
@@ -45,12 +47,12 @@ data class Action(
          * - Block of text: text to insert
          * - System action: the system action id
          */
-        @ColumnInfo(name = KeyMapDao.KEY_ACTION_DATA)
         val data: String,
+        val extras: MutableList<Extra> = mutableListOf(),
+        var flags: Int = 0
 
-        @ColumnInfo(name = KeyMapDao.KEY_ACTION_EXTRAS)
-        val extras: MutableList<Extra> = mutableListOf()
 ) : Serializable {
+
     companion object {
         const val EXTRA_ACTION = "extra_action"
 
@@ -63,6 +65,19 @@ data class Action(
     }
 
     constructor(type: ActionType, data: String, extra: Extra) : this(type, data, mutableListOf(extra))
+
+    val requiresIME: Boolean
+        get() = type == ActionType.KEY ||
+                type == ActionType.KEYCODE ||
+                type == ActionType.TEXT_BLOCK
+
+    init {
+        if (isVolumeAction) {
+            flags = addFlag(flags, FlagUtils.FLAG_SHOW_VOLUME_UI)
+        } else {
+            flags = removeFlag(flags, FlagUtils.FLAG_SHOW_VOLUME_UI)
+        }
+    }
 
     fun getExtraData(extraId: String): Result<String> {
         migrateExtra(extraId)

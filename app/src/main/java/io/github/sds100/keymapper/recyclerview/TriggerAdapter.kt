@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.RecyclerView
 import io.github.sds100.keymapper.R
 import io.github.sds100.keymapper.Trigger
+import io.github.sds100.keymapper.TriggerKeyModel
 import io.github.sds100.keymapper.delegate.DragAndDropDelegate
 import io.github.sds100.keymapper.delegate.IDragAndDrop
 import io.github.sds100.keymapper.util.KeycodeUtils
@@ -24,8 +25,8 @@ import kotlinx.android.synthetic.main.trigger_adapter_item.view.*
 /**
  * Display a list of [Trigger]s as Chips in a RecyclerView
  */
-class TriggerAdapter(override var items: MutableList<Trigger> = mutableListOf()
-) : RecyclerView.Adapter<TriggerAdapter.ViewHolder>(), IDragAndDrop<Trigger> {
+class TriggerAdapter(override var items: MutableList<TriggerKeyModel> = mutableListOf()
+) : RecyclerView.Adapter<TriggerAdapter.ViewHolder>(), IDragAndDrop<TriggerKeyModel> {
 
     var showRemoveButton: Boolean = true
         set(value) {
@@ -63,10 +64,13 @@ class TriggerAdapter(override var items: MutableList<Trigger> = mutableListOf()
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
 
+        val model = items[position]
+
         holder.itemView.apply {
             triggerTitle.text = buildString {
-                append(KeycodeUtils.keycodeToString(items[position].keys[0]))
+                append(KeycodeUtils.keycodeToString(model.keyCode))
                 append(" ${str(R.string.trigger_title_divider_char)} ")
+                append(model.deviceName)
             }
 
             buttonDrag.setOnTouchListener { _, event ->

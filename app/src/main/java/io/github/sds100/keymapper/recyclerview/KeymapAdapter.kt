@@ -4,7 +4,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.chip.Chip
 import io.github.sds100.keymapper.KeyMap
 import io.github.sds100.keymapper.KeymapAdapterModel
@@ -82,20 +81,6 @@ class KeymapAdapter(private val mOnItemClickListener: OnItemClickListener<Keymap
 
             } else {
                 flagsLayout.visibility = View.GONE
-            }
-
-            if (model.triggerList.isEmpty()) {
-                triggerLayout.visibility = View.GONE
-
-            } else {
-                triggerLayout.visibility = View.VISIBLE
-                //show all the triggers in a list
-                val triggerAdapter = TriggerAdapter(model.triggerList.toMutableList()).apply {
-                    showRemoveButton = false
-                }
-
-                recyclerViewTrigger.layoutManager = LinearLayoutManager(context)
-                recyclerViewTrigger.adapter = triggerAdapter
             }
 
             checkBox.isChecked = iSelectionProvider.isSelected(holder.itemId)

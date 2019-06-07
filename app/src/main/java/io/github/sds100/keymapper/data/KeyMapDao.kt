@@ -14,12 +14,21 @@ abstract class KeyMapDao {
         const val TABLE_NAME = "keymaps"
         const val KEY_ID = "id"
         const val KEY_FLAGS = "flags"
-        const val KEY_TRIGGER_LIST = "trigger_list"
         const val KEY_ENABLED = "is_enabled"
+        const val KEY_TRIGGER_LIST = "trigger_list"
+
 
         //Action stuff
+        @Deprecated(message = "Actions are serialized to JSON after database version 1w")
         const val KEY_ACTION_TYPE = "action_type"
+
+        @Deprecated(message = "Actions are serialized to JSON after database version 1")
         const val KEY_ACTION_DATA = "action_data"
+
+        @Deprecated(message = "Actions are serialized to JSON after database version 1")
+        const val KEY_ACTION_FLAGS = "action_flags"
+
+        @Deprecated(message = "Actions are serialized to JSON after database version 1")
         const val KEY_ACTION_EXTRAS = "action_extras"
     }
 
